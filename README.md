@@ -71,7 +71,9 @@ playback errors out), a message says so and the fold opens automatically.
 
 A low, filtered white-noise loop plays behind each transmission, like an
 open radio channel: it starts when a message starts and stops 2 seconds
-after it ends, rather than running for the whole session. It's generated
+after it ends, rather than running for the whole session. Ending cuts to a
+brief, louder squelch burst before silence — the sound of a squelch circuit
+opening on the trailing edge — rather than a flat stop. It's generated
 locally with the Web Audio API. The audio context itself is unlocked on the
 join click (required for browsers' autoplay rules), even though the noise
 doesn't start until the first message — otherwise the later, non-gesture

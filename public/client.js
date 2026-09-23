@@ -78,10 +78,14 @@ let ws = null;
 let me = null; // { id, name, role }
 
 const canPlayAudio = 'AudioContext' in window || 'webkitAudioContext' in window;
-const STATIC_GAIN = 0.02; // low background hiss, not meant to be noticed
+const STATIC_GAIN = 0.05; // background hiss level
 const STATIC_STOP_DELAY_MS = 2000; // static lingers this long after speech ends
+const SQUELCH_PEAK_GAIN = 0.16; // brief burst level for the tail squelch
+const SQUELCH_RISE_S = 0.05; // squelch opening
+const SQUELCH_FALL_S = 0.15; // squelch closing back to silence
 let audioCtx = null;
 let staticSource = null;
+let staticGain = null;
 let staticStopTimer = null;
 
 // Creates (or resumes) the AudioContext without playing anything. Must run
@@ -120,14 +124,28 @@ function startStaticNoise() {
   source.connect(filter).connect(gain).connect(audioCtx.destination);
   source.start();
   staticSource = source;
+  staticGain = gain;
 }
 
+// Stops the static with a quick, louder burst first — the sound of a
+// squelch circuit briefly opening on the trailing edge before muting.
 function stopStaticNoiseNow() {
   clearTimeout(staticStopTimer);
-  if (!staticSource) return;
-  staticSource.stop();
-  staticSource.disconnect();
+  const source = staticSource;
+  const gain = staticGain;
   staticSource = null;
+  staticGain = null;
+  if (!source || !gain) return;
+
+  const now = audioCtx.currentTime;
+  gain.gain.cancelScheduledValues(now);
+  gain.gain.setValueAtTime(gain.gain.value, now);
+  gain.gain.linearRampToValueAtTime(SQUELCH_PEAK_GAIN, now + SQUELCH_RISE_S);
+  gain.gain.linearRampToValueAtTime(0, now + SQUELCH_RISE_S + SQUELCH_FALL_S);
+
+  const stopAt = now + SQUELCH_RISE_S + SQUELCH_FALL_S;
+  source.stop(stopAt);
+  source.onended = () => source.disconnect();
 }
 
 function scheduleStaticStop() {
