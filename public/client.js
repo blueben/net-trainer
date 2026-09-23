@@ -79,15 +79,26 @@ let me = null; // { id, name, role }
 
 const canPlayAudio = 'AudioContext' in window || 'webkitAudioContext' in window;
 const STATIC_GAIN = 0.02; // low background hiss, not meant to be noticed
+const STATIC_STOP_DELAY_MS = 2000; // static lingers this long after speech ends
 let audioCtx = null;
 let staticSource = null;
+let staticStopTimer = null;
+
+// Creates (or resumes) the AudioContext without playing anything. Must run
+// inside a user-gesture handler (the join click) — browsers' autoplay
+// policies block audio contexts started outside one, and speech only
+// starts later, in response to a server message, which isn't a gesture.
+function unlockAudio() {
+  if (!canPlayAudio || audioCtx) return;
+  audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+}
 
 // Loops filtered white noise at low volume, like an open radio channel.
-// Must be started from inside a user-gesture handler (the join click) or
-// browsers' autoplay policies will silently block it.
+// Runs alongside speech: starts when a message starts and stops shortly
+// after it ends, rather than for the whole session.
 function startStaticNoise() {
-  if (!canPlayAudio || staticSource) return;
-  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+  clearTimeout(staticStopTimer);
+  if (!canPlayAudio || !audioCtx || staticSource) return;
 
   const bufferSeconds = 2;
   const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * bufferSeconds, audioCtx.sampleRate);
@@ -111,11 +122,17 @@ function startStaticNoise() {
   staticSource = source;
 }
 
-function stopStaticNoise() {
+function stopStaticNoiseNow() {
+  clearTimeout(staticStopTimer);
   if (!staticSource) return;
   staticSource.stop();
   staticSource.disconnect();
   staticSource = null;
+}
+
+function scheduleStaticStop() {
+  clearTimeout(staticStopTimer);
+  staticStopTimer = setTimeout(stopStaticNoiseNow, STATIC_STOP_DELAY_MS);
 }
 
 joinForm.querySelectorAll('input[name="role"]').forEach((radio) => {
@@ -132,7 +149,7 @@ joinForm.addEventListener('submit', (e) => {
   const role = joinForm.role.value;
   const passcode = document.getElementById('join-passcode').value;
 
-  startStaticNoise();
+  unlockAudio();
   connect({ sessionCode, role, passcode });
 });
 
@@ -152,7 +169,7 @@ function connect({ sessionCode, role, passcode }) {
     if (netScreen.hidden === false) {
       clearWords();
       cancelSpeech();
-      stopStaticNoise();
+      stopStaticNoiseNow();
       radioStatus.textContent = 'Disconnected from net';
     }
   });
@@ -173,6 +190,7 @@ function handleServerMessage(msg) {
     case 'message-start':
       clearWords();
       cancelSpeech();
+      startStaticNoise();
       currentVoice = voiceForSender(msg.senderName);
       radioStatus.textContent = `Receiving from ${msg.senderName}...`;
       break;
@@ -181,11 +199,13 @@ function handleServerMessage(msg) {
       speakWord(msg.word);
       break;
     case 'message-end':
+      scheduleStaticStop();
       radioStatus.textContent = 'Channel idle';
       break;
     case 'collision':
       clearWords();
       cancelSpeech();
+      scheduleStaticStop();
       radioStatus.textContent = 'Two transmissions collided';
       startCollisionEffect(radioText, COLLISION_EFFECT_MS);
       setTimeout(() => {
@@ -221,6 +241,7 @@ function onJoined(msg) {
   }
 
   if (msg.snapshot.current) {
+    startStaticNoise();
     currentVoice = voiceForSender(msg.snapshot.current.senderName);
     radioStatus.textContent = `Receiving from ${msg.snapshot.current.senderName}...`;
   } else {

@@ -67,11 +67,14 @@ word-by-word text sits collapsed under a "Show words on screen" fold instead
 of being the main display. If speech fails (browser doesn't support it, or
 playback errors out), a message says so and the fold opens automatically.
 
-A low, filtered white-noise loop plays continuously in the background from
-the moment you join, like an open radio channel. It starts on the join click
-(required for browsers' autoplay rules) and stops on disconnect. It's
-generated locally with the Web Audio API, not synced to speech, and not
-adjustable — same "no participant controls" approach as speech itself.
+A low, filtered white-noise loop plays behind each transmission, like an
+open radio channel: it starts when a message starts and stops 2 seconds
+after it ends, rather than running for the whole session. It's generated
+locally with the Web Audio API. The audio context itself is unlocked on the
+join click (required for browsers' autoplay rules), even though the noise
+doesn't start until the first message — otherwise the later, non-gesture
+start would be silently blocked. Not adjustable, same "no participant
+controls" approach as speech itself.
 
 ## Manual test script
 
