@@ -83,7 +83,7 @@ function handleServerMessage(msg) {
       }, 400);
       break;
     case 'collision':
-      radioStatus.textContent = 'DOUBLE — transmissions lost';
+      radioStatus.textContent = 'Two transmissions collided';
       startCollisionEffect(radioText, COLLISION_EFFECT_MS);
       setTimeout(() => {
         radioStatus.textContent = 'Channel idle';
