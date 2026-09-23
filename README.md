@@ -43,6 +43,12 @@ Separate multiple origins with commas.
   review), a live WPM (words-per-minute) control, and the ability to remove
   a participant from the session.
 
+There's no name field. Joining assigns a station label ("Station 1",
+"Station 2", ...) used only for the roster and the instructor's transcript.
+As on a real net, say who you are inside the message itself — the send box
+prompts for a call sign or name. The server also records each participant's
+IP address for the instructor's audit log; it isn't shown in the UI.
+
 ## Manual test script
 
 1. `npm install && npm start`, open 3 tabs at `http://localhost:3000`.

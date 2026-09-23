@@ -13,6 +13,7 @@ function createSession(sessionId) {
     id: sessionId,
     wpm: 100,
     participants: new Map(), // clientId -> Participant
+    stationCount: 0, // monotonic counter for assigning "Station N" labels
     queue: [],
     current: null, // { id, text, senderName, senderId, revealedCount, timer }
     log: [],
@@ -30,9 +31,13 @@ function removeSessionIfEmpty(session) {
   }
 }
 
-function addParticipant(session, { name, role, ws }) {
+// Participants are labeled "Station N" rather than self-chosen names —
+// people identify themselves inside the message text, like a real net.
+function addParticipant(session, { role, ws, ip }) {
   const id = randomUUID();
-  const participant = { id, name, role, ws, connectedAt: Date.now(), lastSubmitAt: 0 };
+  session.stationCount += 1;
+  const name = `Station ${session.stationCount}`;
+  const participant = { id, name, role, ws, ip, connectedAt: Date.now(), lastSubmitAt: 0 };
   session.participants.set(id, participant);
   return participant;
 }

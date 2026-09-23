@@ -30,20 +30,19 @@ joinForm.addEventListener('submit', (e) => {
   e.preventDefault();
   joinError.hidden = true;
 
-  const name = document.getElementById('join-name').value;
   const sessionCode = document.getElementById('join-code').value;
   const role = joinForm.role.value;
   const passcode = document.getElementById('join-passcode').value;
 
-  connect({ name, sessionCode, role, passcode });
+  connect({ sessionCode, role, passcode });
 });
 
-function connect({ name, sessionCode, role, passcode }) {
+function connect({ sessionCode, role, passcode }) {
   const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
   ws = new WebSocket(`${protocol}//${location.host}/ws`);
 
   ws.addEventListener('open', () => {
-    ws.send(JSON.stringify({ type: 'join', name, sessionCode, role, passcode }));
+    ws.send(JSON.stringify({ type: 'join', sessionCode, role, passcode }));
   });
 
   ws.addEventListener('message', (event) => {

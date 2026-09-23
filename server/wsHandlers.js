@@ -134,12 +134,11 @@ function handleConnection(ws, req) {
   function handleJoin(msg) {
     if (session) return; // already joined on this socket
 
-    const name = String(msg.name || '').trim().slice(0, 40) || 'Anonymous';
     const sessionId = String(msg.sessionCode || DEFAULT_SESSION_ID).trim().toUpperCase().slice(0, 20) || DEFAULT_SESSION_ID;
     const requestedRole = msg.role === 'instructor' ? 'instructor' : 'participant';
 
     if (requestedRole === 'instructor' && INSTRUCTOR_PASSCODE && msg.passcode !== INSTRUCTOR_PASSCODE) {
-      audit('failed-passcode', remoteAddress, { name, sessionId });
+      audit('failed-passcode', remoteAddress, { sessionId });
       send(ws, { type: 'join-error', reason: 'Incorrect instructor passcode.' });
       return;
     }
@@ -156,8 +155,8 @@ function handleConnection(ws, req) {
       target = createSession(sessionId);
     }
     session = target;
-    participant = addParticipant(session, { name, role: requestedRole, ws });
-    audit('join', remoteAddress, { name, role: requestedRole, sessionId });
+    participant = addParticipant(session, { role: requestedRole, ws, ip: remoteAddress });
+    audit('join', remoteAddress, { label: participant.name, role: requestedRole, sessionId });
 
     send(ws, {
       type: 'joined',
