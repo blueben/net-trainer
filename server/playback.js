@@ -36,6 +36,7 @@ function tryStartNext(session, broadcast) {
     type: 'message-start',
     id: next.id,
     senderName: next.senderName,
+    text: next.text.join(' '),
     wordCount: next.text.length,
     intervalMs,
   });

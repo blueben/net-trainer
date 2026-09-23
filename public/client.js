@@ -192,11 +192,11 @@ function handleServerMessage(msg) {
       cancelSpeech();
       startStaticNoise();
       currentVoice = voiceForSender(msg.senderName);
+      speakMessage(msg.text);
       radioStatus.textContent = `Receiving from ${msg.senderName}...`;
       break;
     case 'word-reveal':
       addWord(msg.word);
-      speakWord(msg.word);
       break;
     case 'message-end':
       scheduleStaticStop();
@@ -278,15 +278,19 @@ function clearWords() {
 // Speech isn't kept in sync with the on-screen word reveal — it just queues
 // and plays at its own pace. The word display is the fallback, not the
 // primary experience, so drift between the two doesn't matter.
-function speakWord(word) {
+// Speaks the whole message as one utterance rather than one per word, so
+// the engine's own sentence prosody applies instead of each word coming out
+// as a flat, isolated fragment. The on-screen word reveal is unaffected —
+// it's just no longer what paces the audio.
+function speakMessage(text) {
   if (!canSpeak) return;
-  const utterance = new SpeechSynthesisUtterance(word);
+  const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = SPEECH_RATE;
   if (currentVoice) utterance.voice = currentVoice;
   utterance.addEventListener('error', (e) => {
-    // 'interrupted'/'canceled' are expected — cancelSpeech() clears the
-    // queue when a message ends or a new one starts. Anything else means
-    // speech itself isn't working.
+    // 'interrupted'/'canceled' are expected — cancelSpeech() clears this
+    // when a new message starts before the old one finishes. Anything else
+    // means speech itself isn't working.
     if (e.error === 'interrupted' || e.error === 'canceled') return;
     showSpeechFallback();
   });
