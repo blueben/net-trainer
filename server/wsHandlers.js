@@ -1,5 +1,6 @@
 const {
-  getOrCreateSession,
+  getSession,
+  createSession,
   addParticipant,
   removeParticipant,
   rosterSnapshot,
@@ -8,11 +9,18 @@ const { submitMessage, wordIntervalMs } = require('./playback');
 
 const INSTRUCTOR_PASSCODE = process.env.INSTRUCTOR_PASSCODE || null;
 const DEFAULT_SESSION_ID = 'NET1';
+const SUBMIT_COOLDOWN_MS = 250;
 
 function send(ws, message) {
   if (ws.readyState === ws.OPEN) {
     ws.send(JSON.stringify(message));
   }
+}
+
+// Minimal audit trail: joins, kicks, and failed instructor-passcode attempts,
+// with a timestamp and the connecting address.
+function audit(event, remoteAddress, details = {}) {
+  console.log(`[audit] ${new Date().toISOString()} ${event} from=${remoteAddress}`, details);
 }
 
 // Broadcasts to every participant in the session. Pass { instructorOnly: true }
@@ -51,9 +59,15 @@ function sessionSnapshot(session, forParticipant) {
   return snapshot;
 }
 
-function handleConnection(ws) {
+function handleConnection(ws, req) {
   let session = null;
   let participant = null;
+  const remoteAddress = req.socket.remoteAddress;
+
+  ws.isAlive = true;
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
 
   ws.on('error', (err) => console.error('[ws]', err));
 
@@ -74,6 +88,10 @@ function handleConnection(ws) {
     if (!session || !participant) return;
 
     if (msg.type === 'submit' && typeof msg.text === 'string') {
+      const now = Date.now();
+      if (now - participant.lastSubmitAt < SUBMIT_COOLDOWN_MS) return;
+      participant.lastSubmitAt = now;
+
       submitMessage(session, makeBroadcast(session), {
         senderId: participant.id,
         senderName: participant.name,
@@ -94,6 +112,7 @@ function handleConnection(ws) {
     if (msg.type === 'kick' && participant.role === 'instructor') {
       const target = session.participants.get(msg.targetId);
       if (target && target.id !== participant.id) {
+        audit('kick', remoteAddress, { by: participant.name, target: target.name, sessionId: session.id });
         send(target.ws, { type: 'kicked' });
         target.ws.close();
         removeParticipant(session, target.id);
@@ -120,12 +139,25 @@ function handleConnection(ws) {
     const requestedRole = msg.role === 'instructor' ? 'instructor' : 'participant';
 
     if (requestedRole === 'instructor' && INSTRUCTOR_PASSCODE && msg.passcode !== INSTRUCTOR_PASSCODE) {
+      audit('failed-passcode', remoteAddress, { name, sessionId });
       send(ws, { type: 'join-error', reason: 'Incorrect instructor passcode.' });
       return;
     }
 
-    session = getOrCreateSession(sessionId);
+    // Only an instructor join can create a session; a participant can only
+    // join one that already exists, so a guessed code can't be used to spin
+    // up a net on its own.
+    let target = getSession(sessionId);
+    if (!target) {
+      if (requestedRole !== 'instructor') {
+        send(ws, { type: 'join-error', reason: 'Session not found. Ask your instructor for the code.' });
+        return;
+      }
+      target = createSession(sessionId);
+    }
+    session = target;
     participant = addParticipant(session, { name, role: requestedRole, ws });
+    audit('join', remoteAddress, { name, role: requestedRole, sessionId });
 
     send(ws, {
       type: 'joined',

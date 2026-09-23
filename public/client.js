@@ -149,19 +149,15 @@ function renderRoster(participants) {
 function appendLogRow(entry) {
   const row = document.createElement('tr');
   const time = new Date(entry.playedAt || entry.submittedAt).toLocaleTimeString();
-  row.innerHTML = `
-    <td>${time}</td>
-    <td>${escapeHtml(entry.senderName)}</td>
-    <td>${escapeHtml(entry.fullText)}</td>
-    <td class="status-${entry.status}">${entry.status}</td>
-  `;
-  logBody.prepend(row);
-}
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+  for (const value of [time, entry.senderName, entry.fullText, entry.status]) {
+    const cell = document.createElement('td');
+    cell.textContent = value;
+    row.appendChild(cell);
+  }
+  row.lastChild.className = `status-${entry.status}`;
+
+  logBody.prepend(row);
 }
 
 sendForm.addEventListener('submit', (e) => {

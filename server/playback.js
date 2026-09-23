@@ -1,8 +1,10 @@
 const { randomUUID } = require('crypto');
 const { handleCollision } = require('./collision');
+const { pushLog } = require('./session');
 
 const MAX_WORDS = 50;
 const MAX_TEXT_CHARS = 500;
+const MAX_QUEUE_LENGTH = 20;
 
 function wordIntervalMs(wpm) {
   return 60000 / wpm;
@@ -63,7 +65,7 @@ function tryStartNext(session, broadcast) {
         status: 'played',
         playedAt: Date.now(),
       };
-      session.log.push(logEntry);
+      pushLog(session, logEntry);
       broadcast({ type: 'log-update', entry: logEntry }, { instructorOnly: true });
 
       session.current = null;
@@ -90,6 +92,8 @@ function submitMessage(session, broadcast, { senderId, senderName, text }) {
     handleCollision(session, broadcast, message, tryStartNext);
     return;
   }
+
+  if (session.queue.length >= MAX_QUEUE_LENGTH) return; // net is congested; drop rather than grow without bound
 
   session.queue.push(message);
   tryStartNext(session, broadcast);
