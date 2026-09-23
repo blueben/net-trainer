@@ -6,6 +6,7 @@
   --accent: #4fd18b;
   --muted: #7a938c;
   --error: #e0685c;
+  --collision: #d64545;
   --control-radius: 4px;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
@@ -160,7 +161,7 @@ button {
 }
 
 .radio-text.collision {
-  color: var(--error);
+  color: var(--collision);
   animation: garble 0.08s infinite;
 }
 
@@ -232,4 +233,4 @@ button {
 }
 
 .status-played { color: var(--accent); }
-.status-doubled-lost, .status-doubled-new-lost { color: var(--error); }
+.status-doubled-lost, .status-doubled-new-lost { color: var(--collision); }
