@@ -193,6 +193,14 @@ button {
   color: var(--muted);
 }
 
+.speech-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
 .send-form {
   display: flex;
   gap: 10px;

@@ -57,6 +57,11 @@ As on a real net, say who you are inside the message itself — the send box
 prompts for a call sign or name. The server also records each participant's
 IP address for the instructor's audit log; it isn't shown in the UI.
 
+Each participant can check "Speak words aloud" to have their browser read
+each word out loud as it appears, using the Web Speech API. This is local to
+each browser tab — it doesn't change what's broadcast to the net — and the
+speech rate follows the current WPM setting.
+
 ## Manual test script
 
 1. `npm install && npm start`, open 3 tabs at `http://localhost:3000`.
