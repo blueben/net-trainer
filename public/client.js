@@ -22,11 +22,20 @@ const wpmValue = document.getElementById('wpm-value');
 const logBody = document.getElementById('log-body');
 const speechToggle = document.getElementById('speech-toggle');
 const speechRateSlider = document.getElementById('speech-rate');
+const speechFallback = document.getElementById('speech-fallback');
+const textFold = document.getElementById('text-fold');
 
 if (!canSpeak) {
+  speechToggle.checked = false;
   speechToggle.disabled = true;
   speechToggle.title = 'Speech is not supported in this browser';
   speechRateSlider.disabled = true;
+  showSpeechFallback();
+}
+
+function showSpeechFallback() {
+  speechFallback.hidden = false;
+  textFold.open = true;
 }
 
 let ws = null;
@@ -164,16 +173,20 @@ function clearWords() {
   radioText.textContent = '';
 }
 
-// Speaks one word per call. Cancels whatever's still queued or playing first,
-// so speech always tracks the word currently on screen instead of queuing up
-// and drifting behind it — the speech engine's own pace doesn't line up with
-// the fixed word-reveal interval, and a plain queue would fall further behind
-// with every word.
+// Speech isn't kept in sync with the on-screen word reveal — it just queues
+// and plays at its own pace. The word display is the fallback, not the
+// primary experience, so drift between the two doesn't matter.
 function speakWord(word) {
   if (!canSpeak || !speechToggle.checked) return;
-  speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.rate = Number(speechRateSlider.value);
+  utterance.addEventListener('error', (e) => {
+    // 'interrupted'/'canceled' are expected — cancelSpeech() clears the
+    // queue when a message ends or a new one starts. Anything else means
+    // speech itself isn't working.
+    if (e.error === 'interrupted' || e.error === 'canceled') return;
+    showSpeechFallback();
+  });
   speechSynthesis.speak(utterance);
 }
 

@@ -57,20 +57,24 @@ As on a real net, say who you are inside the message itself — the send box
 prompts for a call sign or name. The server also records each participant's
 IP address for the instructor's audit log; it isn't shown in the UI.
 
-Each participant can check "Speak words aloud" to have their browser read
-each word out loud as it appears, using the Web Speech API. This is local to
-each browser tab — it doesn't change what's broadcast to the net. A "Voice
-speed" slider controls how fast the voice talks; if words sound chopped off,
-the voice isn't finishing before the next word arrives, so raise it.
+Speech is the default way of receiving the net. Each browser reads each word
+aloud as it arrives, using the Web Speech API; a "Voice speed" slider (local
+to each tab, doesn't change what's broadcast) controls how fast the voice
+talks. Speech isn't synced to the on-screen word reveal — it just plays at
+its own pace — so the word-by-word text sits collapsed under a "Show words
+on screen" fold instead of being the main display. If speech fails (browser
+doesn't support it, or playback errors out), a message says so and the fold
+opens automatically.
 
 ## Manual test script
 
 1. `npm install && npm start`, open 3 tabs at `http://localhost:3000`.
 2. Join Tab A as Instructor, Tabs B and C as Participants (same session
    code). Verify only Tab A shows the transcript/WPM/roster-kick controls.
-3. Send a short message from Tab B. Verify all three tabs show the words
-   appearing one at a time, then clearing, and Tab A's transcript logs it as
-   `played`.
+3. Send a short message from Tab B. Verify all three tabs speak the words
+   aloud, and Tab A's transcript logs it as `played`. Open the "Show words on
+   screen" fold on one tab and confirm the words still appear and clear
+   there too.
 4. From different tabs, submit 2-3 messages while the channel is idle.
    Verify they play in submission order, one at a time.
 5. **Collision test**: lower the WPM (Tab A) so playback is slow, have Tab B
