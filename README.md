@@ -34,6 +34,14 @@ ALLOWED_ORIGINS=http://192.168.1.50:3000 npm start
 
 Separate multiple origins with commas.
 
+## Deploying
+
+`Dockerfile` builds the app as a single container; `deploy/ecs-deploy.sh`
+walks through standing it up on ECS Fargate (one task, behind an
+HTTP-only ALB, us-west-2, default VPC). Session state lives in memory in
+one process, so the service stays pinned at `desiredCount: 1` — read the
+script before running it.
+
 ## Roles
 
 - **Participant**: can type and send messages into the net, watches messages
