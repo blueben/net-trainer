@@ -70,15 +70,16 @@ of being the main display. If speech fails (browser doesn't support it, or
 playback errors out), a message says so and the fold opens automatically.
 
 A low, filtered white-noise loop plays behind each transmission, like an
-open radio channel: it starts when a message starts and stops 2 seconds
-after it ends, rather than running for the whole session. Ending cuts to a
-brief, louder squelch burst before silence — the sound of a squelch circuit
-opening on the trailing edge — rather than a flat stop. It's generated
-locally with the Web Audio API. The audio context itself is unlocked on the
-join click (required for browsers' autoplay rules), even though the noise
-doesn't start until the first message — otherwise the later, non-gesture
-start would be silently blocked. Not adjustable, same "no participant
-controls" approach as speech itself.
+open radio channel: it starts when a message starts speaking and stops 2
+seconds after the speech itself finishes — not the visual word reveal,
+which runs on its own pace and can finish earlier or later than the audio.
+Ending cuts to a brief, louder squelch burst before silence — the sound of
+a squelch circuit opening on the trailing edge — rather than a flat stop.
+It's generated locally with the Web Audio API. The audio context itself is
+unlocked on the join click (required for browsers' autoplay rules), even
+though the noise doesn't start until the first message — otherwise the
+later, non-gesture start would be silently blocked. Not adjustable, same
+"no participant controls" approach as speech itself.
 
 ## Manual test script
 

@@ -46,6 +46,7 @@ const NOVELTY_VOICE_NAMES = new Set([
 let voicePool = [];
 let voiceBySender = new Map(); // senderName -> assigned voice, stable for the session
 let currentVoice = null; // the voice for whichever message is currently playing
+let currentUtterance = null; // tracks the live utterance so stale end/error events are ignored
 
 function loadVoicePool() {
   if (!canSpeak) return;
@@ -217,13 +218,13 @@ function handleServerMessage(msg) {
       addWord(msg.word);
       break;
     case 'message-end':
-      scheduleStaticStop();
+      if (!canSpeak) scheduleStaticStop(); // no speech 'end' event to drive this otherwise
       radioStatus.textContent = 'Channel idle';
       break;
     case 'collision':
       clearWords();
       cancelSpeech();
-      scheduleStaticStop();
+      if (!canSpeak) scheduleStaticStop(); // cancelSpeech() fires the utterance's own error event otherwise
       radioStatus.textContent = 'Two transmissions collided';
       startCollisionEffect(radioText, COLLISION_EFFECT_MS);
       setTimeout(() => {
@@ -301,11 +302,21 @@ function clearWords() {
 // as a flat, isolated fragment. The on-screen word reveal is unaffected —
 // it's just no longer what paces the audio.
 function speakMessage(text) {
-  if (!canSpeak) return;
+  if (!canSpeak) return; // message-end handles the static tail in this case
   const utterance = new SpeechSynthesisUtterance(text);
   utterance.rate = SPEECH_RATE;
   if (currentVoice) utterance.voice = currentVoice;
+  currentUtterance = utterance;
+
+  // Static's 2s-after-tail timing is driven by when this utterance actually
+  // finishes, not by the visual word reveal — the two no longer take the
+  // same amount of time. The identity check drops stale events from an
+  // utterance a newer message has already superseded.
+  utterance.addEventListener('end', () => {
+    if (utterance === currentUtterance) scheduleStaticStop();
+  });
   utterance.addEventListener('error', (e) => {
+    if (utterance === currentUtterance) scheduleStaticStop();
     // 'interrupted'/'canceled' are expected — cancelSpeech() clears this
     // when a new message starts before the old one finishes. Anything else
     // means speech itself isn't working.
