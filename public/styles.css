@@ -152,12 +152,27 @@ button {
 }
 
 .radio-text {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: baseline;
+  gap: 0 10px;
   font-size: 28px;
   font-weight: 600;
   letter-spacing: 0.5px;
   text-align: center;
   min-height: 40px;
+  max-width: 100%;
   word-break: break-word;
+}
+
+.radio-word {
+  opacity: 1;
+  transition: opacity 300ms ease-out;
+}
+
+.radio-word.fading {
+  opacity: 0;
 }
 
 .radio-text.collision {

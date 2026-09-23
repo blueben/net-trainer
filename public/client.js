@@ -1,4 +1,8 @@
 const COLLISION_EFFECT_MS = 1500; // must match server/collision.js COLLISION_DELAY_MS
+const WORD_DISPLAY_MS = 2200; // how long a single word stays on screen before it fades
+const WORD_FADE_MS = 300; // portion of WORD_DISPLAY_MS spent fading out
+
+let wordTimers = []; // pending {fadeTimeout, removeTimeout} pairs, for cleanup
 
 const joinScreen = document.getElementById('join-screen');
 const joinForm = document.getElementById('join-form');
@@ -51,6 +55,7 @@ function connect({ sessionCode, role, passcode }) {
 
   ws.addEventListener('close', () => {
     if (netScreen.hidden === false) {
+      clearWords();
       radioStatus.textContent = 'Disconnected from net';
     }
   });
@@ -69,19 +74,17 @@ function handleServerMessage(msg) {
       renderRoster(msg.participants);
       break;
     case 'message-start':
-      radioText.textContent = '';
+      clearWords();
       radioStatus.textContent = `Receiving from ${msg.senderName}...`;
       break;
     case 'word-reveal':
-      radioText.textContent = radioText.textContent ? `${radioText.textContent} ${msg.word}` : msg.word;
+      addWord(msg.word);
       break;
     case 'message-end':
       radioStatus.textContent = 'Channel idle';
-      setTimeout(() => {
-        radioText.textContent = '';
-      }, 400);
       break;
     case 'collision':
+      clearWords();
       radioStatus.textContent = 'Two transmissions collided';
       startCollisionEffect(radioText, COLLISION_EFFECT_MS);
       setTimeout(() => {
@@ -121,6 +124,32 @@ function onJoined(msg) {
   } else {
     radioStatus.textContent = 'Channel idle';
   }
+}
+
+// Each word gets its own lifetime: it appears, sits, fades, then leaves the
+// DOM — so the display only ever shows the last few words, like something
+// spoken rather than a sentence building up and sitting there.
+function addWord(word) {
+  const span = document.createElement('span');
+  span.className = 'radio-word';
+  span.textContent = word;
+  radioText.appendChild(span);
+
+  const fadeTimeout = setTimeout(() => {
+    span.classList.add('fading');
+  }, WORD_DISPLAY_MS - WORD_FADE_MS);
+
+  const removeTimeout = setTimeout(() => {
+    span.remove();
+  }, WORD_DISPLAY_MS);
+
+  wordTimers.push(fadeTimeout, removeTimeout);
+}
+
+function clearWords() {
+  wordTimers.forEach(clearTimeout);
+  wordTimers = [];
+  radioText.textContent = '';
 }
 
 function renderRoster(participants) {
