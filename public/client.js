@@ -1,12 +1,7 @@
 const COLLISION_EFFECT_MS = 1500; // must match server/collision.js COLLISION_DELAY_MS
 const WORD_DISPLAY_MS = 2200; // how long a single word stays on screen before it fades
 const WORD_FADE_MS = 300; // portion of WORD_DISPLAY_MS spent fading out
-const SPEECH_BASELINE_WPM = 150; // speechSynthesis rate 1.0 reads at roughly this pace
-const SPEECH_MIN_RATE = 0.5;
-const SPEECH_MAX_RATE = 2;
-
 let wordTimers = []; // pending {fadeTimeout, removeTimeout} pairs, for cleanup
-let currentWpm = 100;
 const canSpeak = 'speechSynthesis' in window;
 
 const joinScreen = document.getElementById('join-screen');
@@ -26,10 +21,12 @@ const wpmSlider = document.getElementById('wpm-slider');
 const wpmValue = document.getElementById('wpm-value');
 const logBody = document.getElementById('log-body');
 const speechToggle = document.getElementById('speech-toggle');
+const speechRateSlider = document.getElementById('speech-rate');
 
 if (!canSpeak) {
   speechToggle.disabled = true;
   speechToggle.title = 'Speech is not supported in this browser';
+  speechRateSlider.disabled = true;
 }
 
 let ws = null;
@@ -88,7 +85,6 @@ function handleServerMessage(msg) {
     case 'message-start':
       clearWords();
       cancelSpeech();
-      currentWpm = 60000 / msg.intervalMs;
       radioStatus.textContent = `Receiving from ${msg.senderName}...`;
       break;
     case 'word-reveal':
@@ -110,7 +106,6 @@ function handleServerMessage(msg) {
     case 'wpm-changed':
       wpmSlider.value = msg.wpm;
       wpmValue.textContent = msg.wpm;
-      currentWpm = msg.wpm;
       break;
     case 'kicked':
       alert('You have been removed from the net by the instructor.');
@@ -130,7 +125,6 @@ function onJoined(msg) {
   renderRoster(msg.snapshot.participants);
   wpmSlider.value = msg.snapshot.wpm;
   wpmValue.textContent = msg.snapshot.wpm;
-  currentWpm = msg.snapshot.wpm;
 
   if (me.role === 'instructor') {
     instructorPanel.hidden = false;
@@ -179,7 +173,7 @@ function speakWord(word) {
   if (!canSpeak || !speechToggle.checked) return;
   speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.rate = Math.min(SPEECH_MAX_RATE, Math.max(SPEECH_MIN_RATE, currentWpm / SPEECH_BASELINE_WPM));
+  utterance.rate = Number(speechRateSlider.value);
   speechSynthesis.speak(utterance);
 }
 

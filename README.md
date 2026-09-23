@@ -59,8 +59,9 @@ IP address for the instructor's audit log; it isn't shown in the UI.
 
 Each participant can check "Speak words aloud" to have their browser read
 each word out loud as it appears, using the Web Speech API. This is local to
-each browser tab — it doesn't change what's broadcast to the net — and the
-speech rate follows the current WPM setting.
+each browser tab — it doesn't change what's broadcast to the net. A "Voice
+speed" slider controls how fast the voice talks; if words sound chopped off,
+the voice isn't finishing before the next word arrives, so raise it.
 
 ## Manual test script
 

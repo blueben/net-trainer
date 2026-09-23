@@ -193,12 +193,19 @@ button {
   color: var(--muted);
 }
 
-.speech-toggle {
+.speech-controls {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.speech-toggle,
+.speech-rate {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  color: var(--muted);
 }
 
 .send-form {
