@@ -33,6 +33,16 @@ function showSpeechFallback() {
 }
 
 const SPEECH_RATE = 1;
+
+// Novelty/sound-effect voices (macOS's "Novelty" category and similar on
+// other platforms) aren't usable for a training exercise. There's no API
+// flag for this, so exclude them by name.
+const NOVELTY_VOICE_NAMES = new Set([
+  'albert', 'bad news', 'bahh', 'bells', 'boing', 'bubbles', 'cellos',
+  'deranged', 'good news', 'hysterical', 'jester', 'organ', 'pipe organ',
+  'superstar', 'trinoids', 'whisper', 'wobble', 'zarvox',
+]);
+
 let voicePool = [];
 let voiceBySender = new Map(); // senderName -> assigned voice, stable for the session
 let currentVoice = null; // the voice for whichever message is currently playing
@@ -42,7 +52,9 @@ function loadVoicePool() {
   const voices = speechSynthesis.getVoices();
   if (voices.length === 0) return;
   const english = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith('en'));
-  voicePool = english.length ? english : voices;
+  const candidates = english.length ? english : voices;
+  const usable = candidates.filter((v) => !NOVELTY_VOICE_NAMES.has(v.name.toLowerCase()));
+  voicePool = usable.length ? usable : candidates;
 }
 
 if (canSpeak) {
