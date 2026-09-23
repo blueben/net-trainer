@@ -57,14 +57,15 @@ As on a real net, say who you are inside the message itself — the send box
 prompts for a call sign or name. The server also records each participant's
 IP address for the instructor's audit log; it isn't shown in the UI.
 
-Speech is the default way of receiving the net. Each browser reads each word
-aloud as it arrives, using the Web Speech API; a "Voice speed" slider (local
-to each tab, doesn't change what's broadcast) controls how fast the voice
-talks. Speech isn't synced to the on-screen word reveal — it just plays at
-its own pace — so the word-by-word text sits collapsed under a "Show words
-on screen" fold instead of being the main display. If speech fails (browser
-doesn't support it, or playback errors out), a message says so and the fold
-opens automatically.
+Speech is how the net is received — there are no participant-facing controls
+for it. Each browser reads each word aloud as it arrives, using the Web
+Speech API, with each station assigned a distinct, consistent voice for the
+session (picked from the browser's available voices by hashing the station
+label) so listeners can tell speakers apart by ear. Speech isn't synced to
+the on-screen word reveal — it just plays at its own pace — so the
+word-by-word text sits collapsed under a "Show words on screen" fold instead
+of being the main display. If speech fails (browser doesn't support it, or
+playback errors out), a message says so and the fold opens automatically.
 
 ## Manual test script
 

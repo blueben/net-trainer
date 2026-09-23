@@ -20,22 +20,46 @@ const instructorPanel = document.getElementById('instructor-panel');
 const wpmSlider = document.getElementById('wpm-slider');
 const wpmValue = document.getElementById('wpm-value');
 const logBody = document.getElementById('log-body');
-const speechToggle = document.getElementById('speech-toggle');
-const speechRateSlider = document.getElementById('speech-rate');
 const speechFallback = document.getElementById('speech-fallback');
 const textFold = document.getElementById('text-fold');
 
 if (!canSpeak) {
-  speechToggle.checked = false;
-  speechToggle.disabled = true;
-  speechToggle.title = 'Speech is not supported in this browser';
-  speechRateSlider.disabled = true;
   showSpeechFallback();
 }
 
 function showSpeechFallback() {
   speechFallback.hidden = false;
   textFold.open = true;
+}
+
+const SPEECH_RATE = 1;
+let voicePool = [];
+let voiceBySender = new Map(); // senderName -> assigned voice, stable for the session
+let currentVoice = null; // the voice for whichever message is currently playing
+
+function loadVoicePool() {
+  if (!canSpeak) return;
+  const voices = speechSynthesis.getVoices();
+  if (voices.length === 0) return;
+  const english = voices.filter((v) => v.lang && v.lang.toLowerCase().startsWith('en'));
+  voicePool = english.length ? english : voices;
+}
+
+if (canSpeak) {
+  loadVoicePool();
+  speechSynthesis.addEventListener('voiceschanged', loadVoicePool);
+}
+
+// Assigns each station a consistent voice for the session, so listeners can
+// tell speakers apart by ear without any per-user controls.
+function voiceForSender(senderName) {
+  if (voicePool.length === 0) return null;
+  if (!voiceBySender.has(senderName)) {
+    let hash = 0;
+    for (let i = 0; i < senderName.length; i++) hash = (hash * 31 + senderName.charCodeAt(i)) >>> 0;
+    voiceBySender.set(senderName, voicePool[hash % voicePool.length]);
+  }
+  return voiceBySender.get(senderName);
 }
 
 let ws = null;
@@ -94,6 +118,7 @@ function handleServerMessage(msg) {
     case 'message-start':
       clearWords();
       cancelSpeech();
+      currentVoice = voiceForSender(msg.senderName);
       radioStatus.textContent = `Receiving from ${msg.senderName}...`;
       break;
     case 'word-reveal':
@@ -141,6 +166,7 @@ function onJoined(msg) {
   }
 
   if (msg.snapshot.current) {
+    currentVoice = voiceForSender(msg.snapshot.current.senderName);
     radioStatus.textContent = `Receiving from ${msg.snapshot.current.senderName}...`;
   } else {
     radioStatus.textContent = 'Channel idle';
@@ -177,9 +203,10 @@ function clearWords() {
 // and plays at its own pace. The word display is the fallback, not the
 // primary experience, so drift between the two doesn't matter.
 function speakWord(word) {
-  if (!canSpeak || !speechToggle.checked) return;
+  if (!canSpeak) return;
   const utterance = new SpeechSynthesisUtterance(word);
-  utterance.rate = Number(speechRateSlider.value);
+  utterance.rate = SPEECH_RATE;
+  if (currentVoice) utterance.voice = currentVoice;
   utterance.addEventListener('error', (e) => {
     // 'interrupted'/'canceled' are expected — cancelSpeech() clears the
     // queue when a message ends or a new one starts. Anything else means
