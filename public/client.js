@@ -170,10 +170,14 @@ function clearWords() {
   radioText.textContent = '';
 }
 
-// Speaks one word per call, rather than the whole message as one utterance,
-// so audio stays lined up with the word currently on screen.
+// Speaks one word per call. Cancels whatever's still queued or playing first,
+// so speech always tracks the word currently on screen instead of queuing up
+// and drifting behind it — the speech engine's own pace doesn't line up with
+// the fixed word-reveal interval, and a plain queue would fall further behind
+// with every word.
 function speakWord(word) {
   if (!canSpeak || !speechToggle.checked) return;
+  speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(word);
   utterance.rate = Math.min(SPEECH_MAX_RATE, Math.max(SPEECH_MIN_RATE, currentWpm / SPEECH_BASELINE_WPM));
   speechSynthesis.speak(utterance);
