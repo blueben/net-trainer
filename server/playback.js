@@ -2,13 +2,14 @@ const { randomUUID } = require('crypto');
 const { handleCollision } = require('./collision');
 
 const MAX_WORDS = 50;
+const MAX_TEXT_CHARS = 500;
 
 function wordIntervalMs(wpm) {
   return 60000 / wpm;
 }
 
 function tokenize(text) {
-  return text.trim().split(/\s+/).filter(Boolean).slice(0, MAX_WORDS);
+  return text.slice(0, MAX_TEXT_CHARS).trim().split(/\s+/).filter(Boolean).slice(0, MAX_WORDS);
 }
 
 // Pulls the next queued message into `current` and starts the word-reveal timer.

@@ -24,6 +24,16 @@ selection):
 INSTRUCTOR_PASSCODE=training123 npm start
 ```
 
+If participants join from other devices on the same network (not just
+`localhost`), set `ALLOWED_ORIGINS` to the address they'll use, or the
+WebSocket connection will be rejected:
+
+```bash
+ALLOWED_ORIGINS=http://192.168.1.50:3000 npm start
+```
+
+Separate multiple origins with commas.
+
 ## Roles
 
 - **Participant**: can type and send messages into the net, watches messages

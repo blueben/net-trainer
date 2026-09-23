@@ -55,6 +55,8 @@ function handleConnection(ws) {
   let session = null;
   let participant = null;
 
+  ws.on('error', (err) => console.error('[ws]', err));
+
   ws.on('message', (raw) => {
     let msg;
     try {
@@ -111,6 +113,8 @@ function handleConnection(ws) {
   });
 
   function handleJoin(msg) {
+    if (session) return; // already joined on this socket
+
     const name = String(msg.name || '').trim().slice(0, 40) || 'Anonymous';
     const sessionId = String(msg.sessionCode || DEFAULT_SESSION_ID).trim().toUpperCase().slice(0, 20) || DEFAULT_SESSION_ID;
     const requestedRole = msg.role === 'instructor' ? 'instructor' : 'participant';
