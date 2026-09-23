@@ -67,6 +67,12 @@ word-by-word text sits collapsed under a "Show words on screen" fold instead
 of being the main display. If speech fails (browser doesn't support it, or
 playback errors out), a message says so and the fold opens automatically.
 
+A low, filtered white-noise loop plays continuously in the background from
+the moment you join, like an open radio channel. It starts on the join click
+(required for browsers' autoplay rules) and stops on disconnect. It's
+generated locally with the Web Audio API, not synced to speech, and not
+adjustable — same "no participant controls" approach as speech itself.
+
 ## Manual test script
 
 1. `npm install && npm start`, open 3 tabs at `http://localhost:3000`.

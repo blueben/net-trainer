@@ -77,6 +77,47 @@ function voiceForSender(senderName) {
 let ws = null;
 let me = null; // { id, name, role }
 
+const canPlayAudio = 'AudioContext' in window || 'webkitAudioContext' in window;
+const STATIC_GAIN = 0.02; // low background hiss, not meant to be noticed
+let audioCtx = null;
+let staticSource = null;
+
+// Loops filtered white noise at low volume, like an open radio channel.
+// Must be started from inside a user-gesture handler (the join click) or
+// browsers' autoplay policies will silently block it.
+function startStaticNoise() {
+  if (!canPlayAudio || staticSource) return;
+  audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+
+  const bufferSeconds = 2;
+  const buffer = audioCtx.createBuffer(1, audioCtx.sampleRate * bufferSeconds, audioCtx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i++) data[i] = Math.random() * 2 - 1;
+
+  const source = audioCtx.createBufferSource();
+  source.buffer = buffer;
+  source.loop = true;
+
+  const filter = audioCtx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 2000;
+  filter.Q.value = 0.5;
+
+  const gain = audioCtx.createGain();
+  gain.gain.value = STATIC_GAIN;
+
+  source.connect(filter).connect(gain).connect(audioCtx.destination);
+  source.start();
+  staticSource = source;
+}
+
+function stopStaticNoise() {
+  if (!staticSource) return;
+  staticSource.stop();
+  staticSource.disconnect();
+  staticSource = null;
+}
+
 joinForm.querySelectorAll('input[name="role"]').forEach((radio) => {
   radio.addEventListener('change', () => {
     passcodeField.hidden = joinForm.role.value !== 'instructor';
@@ -91,6 +132,7 @@ joinForm.addEventListener('submit', (e) => {
   const role = joinForm.role.value;
   const passcode = document.getElementById('join-passcode').value;
 
+  startStaticNoise();
   connect({ sessionCode, role, passcode });
 });
 
@@ -110,6 +152,7 @@ function connect({ sessionCode, role, passcode }) {
     if (netScreen.hidden === false) {
       clearWords();
       cancelSpeech();
+      stopStaticNoise();
       radioStatus.textContent = 'Disconnected from net';
     }
   });
