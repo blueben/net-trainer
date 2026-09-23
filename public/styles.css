@@ -1,0 +1,235 @@
+:root {
+  --bg: #0e1414;
+  --panel: #161f1f;
+  --border: #2a3838;
+  --text: #d8e8e0;
+  --accent: #4fd18b;
+  --muted: #7a938c;
+  --error: #e0685c;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+}
+
+.screen {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+#join-screen {
+  align-items: center;
+  justify-content: center;
+}
+
+#join-form {
+  width: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 24px;
+}
+
+#join-form h1 {
+  margin: 0 0 8px;
+  font-size: 20px;
+  text-align: center;
+}
+
+#join-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+#join-form label.radio {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  color: var(--text);
+}
+
+#join-form input[type="text"],
+#join-form input[type="password"] {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 10px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+fieldset {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+}
+
+button {
+  background: var(--accent);
+  border: none;
+  border-radius: 6px;
+  padding: 10px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.error {
+  color: var(--error);
+  font-size: 13px;
+  margin: 0;
+}
+
+.net-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.net-title {
+  font-weight: 700;
+}
+
+.roster {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.roster .chip {
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.roster .chip.instructor {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.roster .chip button {
+  background: transparent;
+  color: var(--error);
+  padding: 0;
+  font-size: 11px;
+  border: none;
+}
+
+.radio-display {
+  margin: 24px 20px;
+  min-height: 160px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: radial-gradient(circle at top, #182222, #0c1212);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 20px;
+}
+
+.radio-text {
+  font-size: 28px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-align: center;
+  min-height: 40px;
+  word-break: break-word;
+}
+
+.radio-text.collision {
+  color: var(--error);
+  animation: garble 0.08s infinite;
+}
+
+@keyframes garble {
+  0%   { transform: translate(0, 0) skewX(0deg); }
+  25%  { transform: translate(-2px, 1px) skewX(2deg); }
+  50%  { transform: translate(2px, -1px) skewX(-2deg); }
+  75%  { transform: translate(-1px, 2px) skewX(1deg); }
+  100% { transform: translate(0, 0) skewX(0deg); }
+}
+
+.radio-status {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+
+.send-form {
+  display: flex;
+  gap: 10px;
+  margin: 0 20px 24px;
+}
+
+.send-form input {
+  flex: 1;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.instructor-panel {
+  margin: 0 20px 24px;
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.instructor-controls {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.instructor-controls label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+#log-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+#log-table th, #log-table td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+#log-table th {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.status-played { color: var(--accent); }
+.status-doubled-lost, .status-doubled-new-lost { color: var(--error); }

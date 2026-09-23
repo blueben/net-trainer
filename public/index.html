@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Radio Net Trainer</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<main id="join-screen" class="screen">
+  <form id="join-form">
+    <h1>Radio Net Trainer</h1>
+    <label>
+      Name
+      <input type="text" id="join-name" required maxlength="40" autocomplete="off" />
+    </label>
+    <label>
+      Session Code
+      <input type="text" id="join-code" value="NET1" maxlength="20" autocomplete="off" />
+    </label>
+    <fieldset>
+      <legend>Role</legend>
+      <label class="radio">
+        <input type="radio" name="role" value="participant" checked /> Participant
+      </label>
+      <label class="radio">
+        <input type="radio" name="role" value="instructor" /> Instructor
+      </label>
+    </fieldset>
+    <label id="passcode-field" hidden>
+      Instructor Passcode
+      <input type="password" id="join-passcode" autocomplete="off" />
+    </label>
+    <p id="join-error" class="error" hidden></p>
+    <button type="submit">Join Net</button>
+  </form>
+</main>
+
+<main id="net-screen" class="screen" hidden>
+  <header class="net-header">
+    <div class="net-title">Radio Net <span id="header-session-code"></span></div>
+    <div id="roster" class="roster"></div>
+  </header>
+
+  <section id="radio-display" class="radio-display" aria-live="polite">
+    <div id="radio-text" class="radio-text"></div>
+    <div id="radio-status" class="radio-status">Channel idle</div>
+  </section>
+
+  <form id="send-form" class="send-form">
+    <input type="text" id="send-text" placeholder="Type your transmission..." maxlength="500" autocomplete="off" />
+    <button type="submit">Send</button>
+  </form>
+
+  <section id="instructor-panel" class="instructor-panel" hidden>
+    <div class="instructor-controls">
+      <label>
+        WPM
+        <input type="range" id="wpm-slider" min="20" max="300" value="100" />
+        <span id="wpm-value">100</span>
+      </label>
+    </div>
+    <h2>Transcript</h2>
+    <table id="log-table">
+      <thead>
+        <tr><th>Time</th><th>From</th><th>Message</th><th>Status</th></tr>
+      </thead>
+      <tbody id="log-body"></tbody>
+    </table>
+  </section>
+</main>
+
+<script src="collisionEffect.js"></script>
+<script src="client.js"></script>
+</body>
+</html>

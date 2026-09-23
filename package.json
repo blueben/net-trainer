@@ -1,0 +1,13 @@
+{
+  "name": "radio-net-trainer",
+  "version": "1.0.0",
+  "description": "Radio net / message-passing training simulator",
+  "main": "server/index.js",
+  "scripts": {
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "ws": "^8.18.0"
+  }
+}
