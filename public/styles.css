@@ -25,6 +25,10 @@ body {
   flex-direction: column;
 }
 
+.screen[hidden] {
+  display: none;
+}
+
 #join-screen {
   align-items: center;
   justify-content: center;
